@@ -25,6 +25,7 @@ class LearningAgent(Agent):
         # Set any additional class parameters as needed
         self.t = 0
         self.init_e = epsilon
+        self.a = 0.001 #contant a used in epsilon decay function
 
 
     def reset(self, destination=None, testing=False):
@@ -42,13 +43,15 @@ class LearningAgent(Agent):
         # Update additional class parameters as needed
         # If 'testing' is True, set epsilon and alpha to 0
         
+        #NOTE 我就觉得为什么要用 alpha 来做这变量很明显应该是可以独立调节的才对!, 结果是因为看错了!
+        
         if testing:
             self.epsilon = 0
             self.alpha = 0
         else:
             self.t += 1
-            self.epsilon = math.pow(math.e,-self.alpha*self.t)
-#             self.epsilon = math.cos(self.alpha * self.t)
+#             self.epsilon = math.pow(math.e,-self.a*self.t)
+            self.epsilon = math.cos(self.a * self.t)
 #             self.epsilon = 1.0/self.t
             
         return None
@@ -81,7 +84,7 @@ class LearningAgent(Agent):
         ###########
         # Calculate the maximum Q-value of all actions for a given state
 
-        maxQ = max(self.Q[state].iteritems(), key=lambda x:x[1])[0]
+        maxQ = max(self.Q[state].values())
 
         return maxQ 
 
@@ -122,15 +125,16 @@ class LearningAgent(Agent):
         #   Otherwise, choose an action with the highest Q-value for the current state
         
         if not self.learning:
-            action = self.valid_actions[random.randint(0,len(self.valid_actions)-1)]
+            action = random.choice(self.valid_actions)
             print 'random choosen:',action
         else:
             rand = random.random()
             if rand <= self.epsilon:
                 print "try exploration in rand:",rand,"and epsilon is ", self.epsilon
-                action = self.valid_actions[random.randint(0,len(self.valid_actions)-1)]
+                action = random.choice(self.valid_actions)
             else:
-                action = self.get_maxQ(state)
+                action = random.choice(filter(lambda x:x[1] == self.get_maxQ(state), self.Q[state].iteritems()))[0]
+                print 'selected by Q:',action
         return action
 
 
@@ -182,7 +186,7 @@ def run():
     #   learning   - set to True to force the driving agent to use Q-learning
     #    * epsilon - continuous value for the exploration factor, default is 1
     #    * alpha   - continuous value for the learning rate, default is 0.5
-    agent = env.create_agent(LearningAgent, learning=True, alpha=0.005)
+    agent = env.create_agent(LearningAgent, learning=False, alpha=0.005)
     
     ##############
     # Follow the driving agent
@@ -197,7 +201,7 @@ def run():
     #   display      - set to False to disable the GUI if PyGame is enabled
     #   log_metrics  - set to True to log trial and simulation results to /logs
     #   optimized    - set to True to change the default log file name
-    sim = Simulator(env, update_delay=0.01, display=False, log_metrics=True, optimized=True)
+    sim = Simulator(env, update_delay=1, display=True, log_metrics=True, optimized=True)
     
     ##############
     # Run the simulator
@@ -205,7 +209,29 @@ def run():
     #   tolerance  - epsilon tolerance before beginning testing, default is 0.05 
     #   n_test     - discrete number of testing trials to perform, default is 0
     sim.run(n_test=20, tolerance=0.005)
+    
+def run_without_ui_with_optimized_learning():
+    env = Environment()
+    agent = env.create_agent(LearningAgent, learning=True, alpha=0.1)
+    env.set_primary_agent(agent, enforce_deadline=True)
+    sim = Simulator(env, update_delay=0.001, display=False, log_metrics=True, optimized=True)
+    sim.run(n_test=20, tolerance=0.005)
+    
+def run_without_ui_with_learning():
+    env = Environment()
+    agent = env.create_agent(LearningAgent, learning=True, alpha=0.005)
+    env.set_primary_agent(agent, enforce_deadline=True)
+    sim = Simulator(env, update_delay=0.001, display=True, log_metrics=True, optimized=False)
+    sim.run(n_test=20, tolerance=0.005)
+
+def run_with_ui_without_learning():
+    env = Environment()
+    agent = env.create_agent(LearningAgent)
+    env.set_primary_agent(agent, enforce_deadline=False)
+    sim = Simulator(env, update_delay=1, display=True, log_metrics=True, optimized=False)
+    sim.run(n_test=10, tolerance=0.01)
+
 
 
 if __name__ == '__main__':
-    run()
+    run_without_ui_with_optimized_learning()
