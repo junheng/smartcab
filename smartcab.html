@@ -13240,8 +13240,6 @@ asQJlpmZmZmZWY04wTIzMzMzM6sRJ1hmZmZmZmY18v8KuQ7shqpGxQAAAABJRU5ErkJggg==
 <p>deadline 范围是 $(0,map.length*map.height]$ 地图越大,deadline 导致的状态数量会线性上升, 例如 $10*10$ 地图, 最远曼哈顿距离为100, 则状态 deadline 取值范围从1~100(应该不会有起始点终止点相同的情况吧..), 同样增加了1~100
 倍, 如果实验次数足够多的情况下, 产生的状态数量将无限趋近于100倍</p>
 <p>在本题中, deadline 体现的是在每种状态下的时间紧急程度, 在某些特定的情况下, 例如, 如果模型考虑长期回报并且 deadline 导致运输失败的惩罚 &gt; 违章的惩罚, 那么Agent在此情况下会考虑通过违章来避免绕道或者等待.</p>
-<blockquote><p>至于导师提到的起始点终止点变化因素, 我没有想太明白, 请解惑, 谢谢!</p>
-</blockquote>
 
 </div>
 </div>
@@ -13274,14 +13272,17 @@ asQJlpmZmZmZWY04wTIzMzMzM6sRJ1hmZmZmZmY18v8KuQ7shqpGxQAAAABJRU5ErkJggg==
 <h5 id="&#22238;&#31572;&#65306;"><strong>&#22238;&#31572;&#65306;</strong><a class="anchor-link" href="#&#22238;&#31572;&#65306;">&#194;&#182;</a></h5><p>对于<a href="#定义状态空间">定义状态空间</a>的例子中组合包括6个bool 特征以及一个N=24的离散特征,因此那个例子中状态空间大小是 2^6*24=1536, 因此 (False, True, True, True, False, False, '3AM') 这个状态的频次则是 1/1536, 训练代价比较大</p>
 <p>对于<a href="#问题5">问题5</a>特征空间如下</p>
 <ol>
-<li>waypoint 3</li>
+<li>waypoint 4</li>
 <li>inputs.light 2</li>
-<li>inputs.left 3</li>
-<li>inputs.right 3</li>
+<li>inputs.left 4</li>
+<li>inputs.right 4</li>
 <li>deadline 0~最远距离</li>
-<li>inputs.oncoming 3</li>
+<li>inputs.oncoming 4</li>
 </ol>
-<p>总计 <code>3*2*3*3*3=162</code>个组合, 考虑到这个特征组合不算多, 应该可以完成训练</p>
+<p>针对导师补充问题, 认为 waypoint=3的情况是因为, 在最终决策状态中,没发现 waypoint=None的情况, 因此直接认为这个特征状态只有3个取值</p>
+<p>总计 $4 * 2 * 4 * 4 * 4 = 512$ 个组合
+考虑到每种组合大约有4个行为, 我们就有2048中状态-行为价值需要进行计算</p>
+<p>关于训练轮数和回合数, 基于后续题目的训练数据结论(平均行为奖励/可靠性比例), 我们发现在1400轮训练之后将策略收敛到比较合理的水平, 并且我们可以在训练过程中, 我们尝试不同$\epsilon$衰减函数和其他超参数的情况下, 通过观测平均行为奖励/可靠性比例这两个曲线的趋势来判断, 是否能够在我们预期的轮数内收敛.</p>
 
 </div>
 </div>
@@ -17240,7 +17241,7 @@ QmCC
 <p><strong>回答：</strong></p>
 <ul>
 <li><em>使用了什么epsilon（探索因子）的衰减函数？</em><ul>
-<li>从$\epsilon = e^{-at}$替换到了$\epsilon = \cos(at)$</li>
+<li>从 $\epsilon = e^{-at}$ 替换到了 $\epsilon = \cos(at)$ </li>
 <li>更新的原因是在同样的训练迭代次数的情况下, 前期做更多的探索, 后期做较少的探索.</li>
 </ul>
 </li>
@@ -17266,6 +17267,8 @@ QmCC
 </ul>
 </li>
 </ul>
+<p>针对思考题
+可以理解为所有的状态行为在记录一个t 值, 使用 T 步折扣奖赏的方式进行更新?</p>
 
 </div>
 </div>
@@ -17314,6 +17317,10 @@ QmCC
 <li>在导航方向和红灯事故冲突的情况下, 停下来等待, 但是不能绕路</li>
 <li>在前两者的基础上尽量按照导航走</li>
 </ol>
+<p>在导师的建议下, 更加数学的方式表达, 由于我们需要同时考虑安全性和可靠性, 所以使用调和平均数作为优化目标, 即求最优的策略 Q, 使得最大程度上同时满足安全性和可靠性
+$$
+Q^* = max_Q\frac{Reliablity * Safety}{Reliablity + Safety}
+$$</p>
 
 </div>
 </div>
