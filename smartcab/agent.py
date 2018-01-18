@@ -98,12 +98,14 @@ class LearningAgent(Agent):
         # When learning, check if the 'state' is not in the Q-table
         # If it is not, create a new dictionary for that state
         #   Then, for each action available, set the initial Q-value to 0.0
-        if state not in self.Q:
-            print 'found new state:',state
-            self.Q[state]=dict()
-            for action in self.valid_actions:
-                self.Q[state][action]=0.0
-        
+#         if state not in self.Q:'
+#             print 'found new state:',state
+#             self.Q[state]=dict()
+#             for action in self.valid_actions:
+#                 self.Q[state][action]=0.0
+        if self.learning:
+            self.Q.setdefault(state, {action: 0.0 for action in self.valid_actions})
+        #这个语法之前确实没用过, 看起来舒服多了, 有种函数式编程的感觉
 
         return
 
@@ -133,7 +135,7 @@ class LearningAgent(Agent):
                 print "try exploration in rand:",rand,"and epsilon is ", self.epsilon
                 action = random.choice(self.valid_actions)
             else:
-                action = random.choice(filter(lambda x:x[1] == self.get_maxQ(state), self.Q[state].iteritems()))[0]
+                action = random.choice(filter(lambda x:x[1] == self.get_maxQ(state), self.Q[state].items()))[0]
                 print 'selected by Q:',action
         return action
 
