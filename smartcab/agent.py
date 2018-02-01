@@ -25,7 +25,7 @@ class LearningAgent(Agent):
         # Set any additional class parameters as needed
         self.t = 0
         self.init_e = epsilon
-        self.a = 0.001 #contant a used in epsilon decay function
+        self.a = 0.0015 #contant a used in epsilon decay function
 
 
     def reset(self, destination=None, testing=False):
@@ -42,9 +42,7 @@ class LearningAgent(Agent):
         # Update epsilon using a decay function of your choice
         # Update additional class parameters as needed
         # If 'testing' is True, set epsilon and alpha to 0
-        
-        #NOTE 我就觉得为什么要用 alpha 来做这变量很明显应该是可以独立调节的才对!, 结果是因为看错了!
-        
+                
         if testing:
             self.epsilon = 0
             self.alpha = 0
@@ -105,8 +103,7 @@ class LearningAgent(Agent):
 #                 self.Q[state][action]=0.0
         if self.learning:
             self.Q.setdefault(state, {action: 0.0 for action in self.valid_actions})
-        #这个语法之前确实没用过, 看起来舒服多了, 有种函数式编程的感觉
-
+         
         return
 
 
@@ -214,10 +211,10 @@ def run():
     
 def run_without_ui_with_optimized_learning():
     env = Environment()
-    agent = env.create_agent(LearningAgent, learning=True, alpha=0.1)
+    agent = env.create_agent(LearningAgent, learning=True, alpha=0.5)
     env.set_primary_agent(agent, enforce_deadline=True)
     sim = Simulator(env, update_delay=0.001, display=False, log_metrics=True, optimized=True)
-    sim.run(n_test=20, tolerance=0.005)
+    sim.run(n_test=20, tolerance=0.1)
     
 def run_without_ui_with_learning():
     env = Environment()
